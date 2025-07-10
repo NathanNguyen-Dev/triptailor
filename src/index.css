@@ -6,68 +6,61 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 215 25% 15%;
+    --background: 210 20% 96%;         /* Misty blue-gray */
+    --foreground: 220 15% 18%;         /* Charcoal/Navy */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 210 20% 98%;
+    --card-foreground: 220 15% 18%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover: 210 20% 98%;
+    --popover-foreground: 220 15% 18%;
 
-    --primary: 158 45% 35%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 220 20% 28%;            /* Deep navy */
+    --primary-foreground: 210 20% 96%;
 
-    --secondary: 210 15% 92%;
-    --secondary-foreground: 215 25% 25%;
+    --secondary: 120 10% 70%;          /* Muted green */
+    --secondary-foreground: 220 15% 18%;
 
-    --muted: 210 15% 95%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 210 15% 90%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 195 85% 45%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 120 10% 50%;             /* Muted green accent */
+    --accent-foreground: 210 20% 96%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 215 15% 88%;
-    --input: 215 15% 90%;
-    --ring: 158 45% 35%;
+    --border: 210 15% 85%;
+    --input: 210 15% 90%;
+    --ring: 220 20% 28%;
 
     --radius: 0.75rem;
 
     /* Travel-specific colors */
-    --nature-green: 158 45% 35%;
-    --ocean-blue: 195 85% 45%;
+    --nature-green: 120 10% 50%;
+    --ocean-blue: 210 20% 60%;
     --sunset-orange: 25 95% 55%;
-    --mountain-gray: 215 15% 60%;
+    --mountain-gray: 210 10% 60%;
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(158 45% 35%), hsl(195 85% 45%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 15% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 20% 28%), hsl(120 10% 50%));
+    --gradient-card: linear-gradient(180deg, hsl(210 20% 98%), hsl(210 20% 96%));
     
     /* Shadows */
-    --shadow-soft: 0 4px 20px hsl(215 25% 15% / 0.08);
-    --shadow-card: 0 8px 32px hsl(215 25% 15% / 0.12);
-    --shadow-elevated: 0 16px 48px hsl(215 25% 15% / 0.16);
+    --shadow-soft: 0 4px 20px hsl(220 15% 18% / 0.08);
+    --shadow-card: 0 8px 32px hsl(220 15% 18% / 0.12);
+    --shadow-elevated: 0 16px 48px hsl(220 15% 18% / 0.16);
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 20% 96%;
+    --sidebar-foreground: 220 15% 18%;
+    --sidebar-primary: 220 20% 28%;
+    --sidebar-primary-foreground: 210 20% 96%;
+    --sidebar-accent: 120 10% 70%;
+    --sidebar-accent-foreground: 220 15% 18%;
+    --sidebar-border: 210 15% 85%;
+    --sidebar-ring: 220 20% 28%;
   }
 
   .dark {
