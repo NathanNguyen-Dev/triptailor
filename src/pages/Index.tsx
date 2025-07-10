@@ -5,6 +5,7 @@ import seattleSkyline from "@/assets/seattle-skyline.jpg";
 import portlandMaine from "@/assets/portland-maine.jpg";
 import vietnamStreet from "@/assets/vietnam-street.jpg";
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const featuredGuides = [
   {
@@ -84,6 +85,7 @@ const Index = () => {
   const leftRef = useRef<HTMLDivElement>(null);
   const [leftHeight, setLeftHeight] = useState<number | undefined>(undefined);
   const featuredRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Update height on mount, resize, and typewriter changes
   useEffect(() => {
@@ -111,6 +113,11 @@ const Index = () => {
     if (featuredRef.current) {
       featuredRef.current.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  // Handler for search submit
+  const handleSearchSubmit = (query: string) => {
+    navigate("/chat", { state: { query } });
   };
 
   return (
@@ -167,7 +174,7 @@ const Index = () => {
               <p className="text-xl text-muted-foreground max-w-lg">
               </p>
             </div>
-            <SearchBar />
+            <SearchBar onSubmit={handleSearchSubmit} />
             {/* Example prompts bubble */}
             <div className="mt-3 flex flex-col gap-2">
               <div className="bg-muted text-muted-foreground rounded-xl px-4 py-2 text-sm shadow-sm inline-flex self-start">
