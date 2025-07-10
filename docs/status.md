@@ -13,4 +13,5 @@
 - Adjusted featured guides section to appear below hero with margin, removed scroll snapping for natural scroll
 - Added a 3-column feature panel below featured guides (Group Chat, Follow Your Aspirants, Personalize)
 - Updated feature panel content and icons per requirements
-- Updated browser tab title to 'triptailor - effortless travel' and set favicon to a travel-related icon 
+- Updated browser tab title to 'triptailor - effortless travel' and set favicon to a travel-related icon
+- **[2024-05-22]**: Restructured project into monorepo: moved frontend into `frontend/`, scaffolded FastAPI backend in `backend/`. 
