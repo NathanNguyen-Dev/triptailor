@@ -4,6 +4,7 @@ import utahParks from "@/assets/utah-parks.jpg";
 import seattleSkyline from "@/assets/seattle-skyline.jpg";
 import portlandMaine from "@/assets/portland-maine.jpg";
 import vietnamStreet from "@/assets/vietnam-street.jpg";
+import React, { useState, useEffect, useRef } from "react";
 
 const featuredGuides = [
   {
@@ -41,7 +42,77 @@ const featuredGuides = [
   }
 ];
 
+const typewriterWords = ["effortless", "aspirational", "fun"];
+
+const Typewriter = () => {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentWord = typewriterWords[wordIndex];
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting && displayed.length < currentWord.length) {
+      timeout = setTimeout(() => {
+        setDisplayed(currentWord.slice(0, displayed.length + 1));
+      }, 80);
+    } else if (isDeleting && displayed.length > 0) {
+      timeout = setTimeout(() => {
+        setDisplayed(currentWord.slice(0, displayed.length - 1));
+      }, 40);
+    } else if (!isDeleting && displayed.length === currentWord.length) {
+      timeout = setTimeout(() => setIsDeleting(true), 1200);
+    } else if (isDeleting && displayed.length === 0) {
+      timeout = setTimeout(() => {
+        setIsDeleting(false);
+        setWordIndex((prev) => (prev + 1) % typewriterWords.length);
+      }, 400);
+    }
+    return () => clearTimeout(timeout);
+  }, [displayed, isDeleting, wordIndex]);
+
+  return (
+    <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent min-w-[7ch] inline-block">
+      {displayed}
+      <span className="animate-pulse">|</span>
+    </span>
+  );
+};
+
 const Index = () => {
+  const leftRef = useRef<HTMLDivElement>(null);
+  const [leftHeight, setLeftHeight] = useState<number | undefined>(undefined);
+  const featuredRef = useRef<HTMLDivElement>(null);
+
+  // Update height on mount, resize, and typewriter changes
+  useEffect(() => {
+    function updateHeight() {
+      if (leftRef.current) {
+        setLeftHeight(leftRef.current.offsetHeight);
+      }
+    }
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
+  // Also update when typewriter changes (for dynamic headline)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (leftRef.current) {
+        setLeftHeight(leftRef.current.offsetHeight);
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleScrollToFeatured = () => {
+    if (featuredRef.current) {
+      featuredRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -84,32 +155,42 @@ const Index = () => {
         </div>
       </header>
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+      <section className="container mx-auto px-4 py-16 md:py-24 mb-12">
+        <div className="grid lg:grid-cols-2 gap-12 items-stretch max-w-7xl mx-auto">
           {/* Hero Content */}
-          <div className="space-y-8 order-2 lg:order-1">
+          <div ref={leftRef} className="space-y-8 order-2 lg:order-1 flex flex-col justify-center">
             <div className="space-y-4">
               <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
                 Travel should be{" "}
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  effortless
-                </span>
+                <Typewriter />
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg">
               </p>
             </div>
             <SearchBar />
+            {/* Example prompts bubble */}
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="bg-muted text-muted-foreground rounded-xl px-4 py-2 text-sm shadow-sm inline-flex self-start">
+                Book me a trip to Bali for 10–12 Aug 2024
+              </div>
+              <div className="bg-muted text-muted-foreground rounded-xl px-4 py-2 text-sm shadow-sm inline-flex self-start">
+                Find family-friendly hotels in Paris for 15–20 Sep 2024
+              </div>
+              <div className="bg-muted text-muted-foreground rounded-xl px-4 py-2 text-sm shadow-sm inline-flex self-start">
+                Show me weekend getaways near Seattle for next weekend
+              </div>
+            </div>
           </div>
           {/* Hero Video */}
-          <div className="relative order-1 lg:order-2">
-            <div className="relative overflow-hidden rounded-2xl shadow-[var(--shadow-elevated)]">
+          <div className="relative order-1 lg:order-2 flex" style={leftHeight ? { height: leftHeight } : {}}>
+            <div className="relative overflow-hidden rounded-2xl shadow-[var(--shadow-elevated)] w-full h-full min-h-[300px]">
               <video
                 src="/video_asset.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-[600px] object-cover"
+                className="w-full h-full object-cover object-bottom"
                 poster="/placeholder.svg"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -122,7 +203,7 @@ const Index = () => {
       </section>
 
       {/* Featured Guides Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section ref={featuredRef} className="container mx-auto px-4 py-16">
         <div className="space-y-8">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold text-foreground">Featured guides</h2>
@@ -142,6 +223,45 @@ const Index = () => {
                 className="hover:cursor-pointer"
               />
             ))}
+          </div>
+        </div>
+      </section>
+      {/* Feature Panel Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Feature 1 */}
+          <div className="rounded-3xl bg-green-50 p-8 flex flex-col items-start shadow-sm">
+            {/* Placeholder image/icon */}
+            <div className="mb-6 w-full flex justify-center">
+              <div className="w-32 h-20 bg-green-100 rounded-xl flex items-center justify-center text-3xl">💬</div>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Group Chat</h3>
+            <p className="text-muted-foreground mb-6">Planning a trip with others just got easier! Start a group chat, share ideas and ask for recommendations that balance everyone’s preferences.</p>
+            <div className="flex gap-4 mt-auto">
+              <a href="#" className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/20 rounded-full text-sm font-medium hover:bg-green-100 transition-colors">Learn More</a>
+            </div>
+          </div>
+          {/* Feature 2 */}
+          <div className="rounded-3xl bg-lime-50 p-8 flex flex-col items-start shadow-sm">
+            <div className="mb-6 w-full flex justify-center">
+              <div className="w-32 h-20 bg-lime-100 rounded-xl flex items-center justify-center text-3xl">🔗</div>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Follow Your Aspirants</h3>
+            <p className="text-muted-foreground mb-6">Give us a link to the YouTube video, TikTok, or Instagram Reel and we will whip you a plan for you.</p>
+            <div className="flex gap-4 mt-auto">
+              <a href="#" className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/20 rounded-full text-sm font-medium hover:bg-lime-100 transition-colors">Learn More</a>
+            </div>
+          </div>
+          {/* Feature 3 */}
+          <div className="rounded-3xl bg-purple-50 p-8 flex flex-col items-start shadow-sm">
+            <div className="mb-6 w-full flex justify-center">
+              <div className="w-32 h-20 bg-purple-100 rounded-xl flex items-center justify-center text-3xl">💜</div>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Personalize</h3>
+            <p className="text-muted-foreground mb-6">TripTailor knows you based on your travel and we curate a list for you every month.</p>
+            <div className="flex gap-4 mt-auto">
+              <a href="#" className="inline-flex items-center gap-2 px-4 py-2 border border-foreground/20 rounded-full text-sm font-medium hover:bg-purple-100 transition-colors">Learn More</a>
+            </div>
           </div>
         </div>
       </section>

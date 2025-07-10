@@ -10,17 +10,17 @@ interface SearchBarProps {
 export function SearchBar({ className }: SearchBarProps) {
   return (
     <div className={cn(
-      "flex items-center gap-3 p-4 bg-card rounded-full shadow-[var(--shadow-card)] border max-w-2xl",
+      "flex items-center gap-3 p-2 bg-card rounded-xl shadow-[var(--shadow-card)] border max-w-2xl",
       className
     )}>
       <Input 
         placeholder="Tell us where you want to go..."
-        className="flex-1 border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
+        className="flex-1 border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 text-lg h-10"
       />
       
       <Button 
         size="sm"
-        className="rounded-full w-10 h-10 p-0 bg-primary hover:bg-primary/90 transition-colors"
+        className="rounded-xl w-9 h-9 p-0 bg-primary hover:bg-primary/90 transition-colors"
       >
         <Send className="w-4 h-4" />
       </Button>
