@@ -9,11 +9,6 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-grounding_tool = types.Tool(
-    google_search=types.GoogleSearch()
-)
-
-# Define Duffel function tools as before
 flight_function_tools = [
     types.Tool(
         function_declarations=[
@@ -68,8 +63,7 @@ flight_function_tools = [
     )
 ]
 
-# Combine all tools
-all_tools = flight_function_tools + [grounding_tool]
+all_tools = flight_function_tools
 
 generation_config = types.GenerateContentConfig(
     tools=all_tools

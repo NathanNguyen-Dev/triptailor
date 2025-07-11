@@ -3,6 +3,51 @@ import { useLocation } from "react-router-dom";
 import baliAdventure from "@/assets/bali-adventure.jpg";
 import parisFamilyHotel from "@/assets/paris-family-hotel.jpg";
 import seatleGetaway from "@/assets/seatle-getaway.jpg";
+import { sendChatMessage } from "../lib/api";
+
+type DuffelOffer = {
+  id: string;
+  total_amount: string;
+  total_currency: string;
+  owner?: { name?: string; logo_symbol_url?: string };
+  slices: Array<{
+    origin?: { city_name?: string; iata_code?: string };
+    destination?: { city_name?: string; iata_code?: string };
+    duration?: string;
+    segments: Array<{
+      operating_carrier?: { name?: string; logo_symbol_url?: string };
+      marketing_carrier?: { name?: string; logo_symbol_url?: string };
+      departing_at?: string;
+      arriving_at?: string;
+      passengers: Array<{
+        cabin?: { marketing_name?: string };
+        cabin_class_marketing_name?: string;
+      }>;
+    }>;
+  }>;
+  conditions?: {
+    refund_before_departure?: { allowed?: boolean };
+  };
+};
+
+type DuffelOfferResponse = { data: { offers: DuffelOffer[] } };
+
+function isDuffelOfferResponse(obj: unknown): obj is DuffelOfferResponse {
+  if (
+    typeof obj === "object" &&
+    obj !== null &&
+    "data" in obj
+  ) {
+    const data = (obj as { data?: unknown }).data;
+    return (
+      typeof data === "object" &&
+      data !== null &&
+      "offers" in data &&
+      Array.isArray((data as { offers?: unknown }).offers)
+    );
+  }
+  return false;
+}
 
 const sidebarItems = [
   { icon: "💬", label: "Chats" },
@@ -21,11 +66,20 @@ export default function Chat() {
     { from: "bot", text: "Hey there, I’m here to assist you in planning your experience. Ask me anything travel related." },
   ]);
   const [input, setInput] = React.useState(initialQuery);
+  const [loading, setLoading] = React.useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim()) {
       setMessages([...messages, { from: "user", text: input }]);
+      setLoading(true);
+      try {
+        const aiResponse = await sendChatMessage(input);
+        setMessages(msgs => [...msgs, { from: "ai", text: aiResponse }]);
+      } catch (e) {
+        setMessages(msgs => [...msgs, { from: "ai", text: "Error: Could not get response from backend." }]);
+      }
       setInput("");
+      setLoading(false);
     }
   };
 
@@ -59,18 +113,88 @@ export default function Chat() {
                 {initialQuery}
               </div>
             )}
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={
-                  msg.from === "user"
-                    ? "self-end bg-primary/10 text-primary px-4 py-2 rounded-xl max-w-lg"
-                    : "self-start bg-muted text-muted-foreground px-4 py-2 rounded-xl max-w-lg"
-                }
-              >
-                {msg.text}
-              </div>
-            ))}
+            {messages.map((msg, i) => {
+              // Check if this is a Duffel offers response
+              const isDuffelOffers = isDuffelOfferResponse(msg.text);
+              if (isDuffelOffers) {
+                const offers = (msg.text as unknown as DuffelOfferResponse).data.offers;
+                return (
+                  <div key={i} className="self-start bg-muted text-muted-foreground px-4 py-2 rounded-xl max-w-lg">
+                    <div className="font-bold mb-2 text-lg">Best flight itineraries</div>
+                    <ul className="space-y-6">
+                      {offers.map((offer, idx) => {
+                        let logoUrl = offer.owner?.logo_symbol_url;
+                        if (!logoUrl && offer.slices?.[0]?.segments?.[0]?.marketing_carrier?.logo_symbol_url) {
+                          logoUrl = offer.slices[0].segments[0].marketing_carrier.logo_symbol_url;
+                        }
+                        const slice = offer.slices?.[0];
+                        const segment = slice?.segments?.[0];
+                        const airlineName = offer.owner?.name || segment?.marketing_carrier?.name || "Airline";
+                        const origin = slice?.origin;
+                        const destination = slice?.destination;
+                        const dep = segment?.departing_at ? new Date(segment.departing_at) : null;
+                        const arr = segment?.arriving_at ? new Date(segment.arriving_at) : null;
+                        const duration = slice?.duration?.replace('PT', '').toLowerCase();
+                        const price = offer.total_amount;
+                        const currency = offer.total_currency;
+                        const cancellable = offer.conditions?.refund_before_departure?.allowed;
+                        const cancelText = cancellable === true ? "Free cancellation within 23 hours of booking" : cancellable === false ? "Not cancellable" : null;
+                        return (
+                          <li key={offer.id || idx} className="rounded-2xl border bg-white/80 shadow-sm px-6 py-5 flex flex-col gap-3">
+                            <div className="flex items-center gap-4 mb-2">
+                              {logoUrl && (
+                                <img src={logoUrl} alt="Airline logo" className="w-10 h-10 object-contain rounded bg-white border" />
+                              )}
+                              <div className="flex-1">
+                                <div className="font-semibold text-lg">{airlineName}</div>
+                                <div className="text-muted-foreground text-sm">{origin?.city_name} ({origin?.iata_code}) → {destination?.city_name} ({destination?.iata_code})</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-bold text-xl text-primary">{price} {currency}</div>
+                                <div className="text-xs text-muted-foreground">per person</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-6 text-base font-medium">
+                              <div>
+                                {dep ? dep.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
+                                <span className="ml-2">{dep ? dep.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''} - {arr ? arr.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                              </div>
+                              <div className="text-muted-foreground">{duration}</div>
+                              <div className="text-muted-foreground">Nonstop</div>
+                            </div>
+                            {cancelText && (
+                              <div className={`flex items-center gap-2 text-sm mt-1 ${cancellable ? 'text-green-600' : 'text-red-500'}`}>
+                                {cancellable ? (
+                                  <span>✓</span>
+                                ) : (
+                                  <span>✗</span>
+                                )}
+                                <span>{cancelText}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-end mt-2">
+                              <button className="bg-black text-white rounded-full px-6 py-2 font-semibold text-base shadow hover:bg-gray-800 transition">Book</button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  key={i}
+                  className={
+                    msg.from === "user"
+                      ? "self-end bg-primary/10 text-primary px-4 py-2 rounded-xl max-w-lg"
+                      : "self-start bg-muted text-muted-foreground px-4 py-2 rounded-xl max-w-lg"
+                  }
+                >
+                  {typeof msg.text === "object" ? JSON.stringify(msg.text) : msg.text}
+                </div>
+              );
+            })}
           </div>
           {/* Chat input */}
           <div className="border-t px-8 py-4 bg-background flex gap-2">
@@ -80,12 +204,14 @@ export default function Chat() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              disabled={loading}
             />
             <button
               className="rounded-xl bg-primary text-primary-foreground px-6 py-2 font-medium hover:bg-primary/90 transition-colors"
               onClick={handleSend}
+              disabled={loading || !input.trim()}
             >
-              Send
+              {loading ? "Sending..." : "Send"}
             </button>
           </div>
         </main>
